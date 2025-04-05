@@ -14,15 +14,11 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-// Start the server and join meet
-app.listen(port, async () => {
-  console.log(`Server running at http://localhost:${port}`);
-
+app.post('/join-meet', async (req, res) => {
   try {
     const meetLink = process.env.MEET_LINK;
     if (!meetLink) {
-      console.error('MEET_LINK environment variable is required');
-      return;
+      return res.status(400).json({ error: 'MEET_LINK environment variable is required' });
     }
 
     const meet = new JoinGoogleMeet(process.env.EMAIL_ID, process.env.PASSWORD);
@@ -30,20 +26,32 @@ app.listen(port, async () => {
     await meet.login();
     await meet.turnOffMicCam(meetLink);
 
-    // Monitor meeting status
-    while (true) {
-      await new Promise(resolve => setTimeout(resolve, 30000)); // Check every 30 seconds
-      try {
-        if (!await meet.checkIfJoined()) {
-          console.log('Meeting appears to have ended');
+    // Send initial success response
+    res.json({ message: 'Successfully joined meeting' });
+
+    // Monitor meeting status in background
+    (async () => {
+      while (true) {
+        await new Promise(resolve => setTimeout(resolve, 30000)); // Check every 30 seconds
+        try {
+          if (!await meet.checkIfJoined()) {
+            console.log('Meeting appears to have ended');
+            break;
+          }
+        } catch (error) {
+          console.error('Lost connection to meeting:', error.message);
           break;
         }
-      } catch (error) {
-        console.error('Lost connection to meeting:', error.message);
-        break;
       }
-    }
+    })();
+
   } catch (error) {
     console.error('Meeting automation failed:', error.message);
+    res.status(500).json({ error: 'Failed to join meeting' });
   }
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
