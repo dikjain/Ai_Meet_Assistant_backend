@@ -40,6 +40,9 @@ class JoinGoogleMeet {
 
       options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
+      // Set binary path for Chrome in Docker
+      options.setChromeBinaryPath(process.env.CHROME_BIN || '/usr/bin/google-chrome');
+
       console.log('Building Chrome driver with options...');
       this.driver = await new Builder()
         .forBrowser('chrome')

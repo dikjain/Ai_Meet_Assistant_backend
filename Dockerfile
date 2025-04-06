@@ -5,7 +5,11 @@ FROM node:20-slim
 RUN apt-get update && apt-get install -y \
     wget gnupg ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 \
     libatk1.0-0 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libnspr4 libnss3 libxcomposite1 libxdamage1 \
-    libxrandr2 xdg-utils chromium chromium-driver --no-install-recommends \
+    libxrandr2 xdg-utils libx11-xcb1 libxcb1 libxss1 libxtst6 lsb-release xvfb \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -19,10 +23,11 @@ RUN npm install
 # Copy rest of the app
 COPY . .
 
-# Set environment variable for Chrome
-ENV CHROME_BIN=/usr/bin/chromium
-ENV CHROME_DRIVER=/usr/bin/chromedriver
+# Set environment variables for Chrome
+ENV CHROME_BIN=/usr/bin/google-chrome
+ENV CHROME_PATH=/usr/bin/google-chrome
+ENV DISPLAY=:99
 
 # Expose port and start app
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+CMD ["node", "app.js"]
