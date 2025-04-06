@@ -14,7 +14,7 @@ class JoinGoogleMeet {
     options.addArguments(
       '--disable-blink-features=AutomationControlled',
       '--start-maximized', 
-      '--headless=new',
+      // '--headless=new',
       '--disable-notifications',
       '--use-fake-ui-for-media-stream',
       '--no-sandbox',
@@ -92,100 +92,77 @@ class JoinGoogleMeet {
   
       // Try to sign in if needed
       try {
-        console.log('Looking for sign-in button...');
         const signInButton = await this.driver.wait(
           until.elementLocated(By.css('div.rrdnCc div[role="button"]')),
           5000
         );
-        console.log('Found sign-in button, clicking it...');
         await signInButton.click();
-        await this._sleep(this.randomDelay() + 300); // Add a bit more delay after clicking
+        await this._sleep(this.randomDelay());
         
         // Select account if needed
         try {
-          console.log(`Looking for account: ${this.emailId}`);
           const accountSelector = await this.driver.wait(
             until.elementLocated(By.css(`div[data-identifier="${this.emailId}"]`)),
             5000
           );
-          console.log('Found account, selecting it...');
           await accountSelector.click();
-          await this._sleep(this.randomDelay() + 200);
+          await this._sleep(this.randomDelay());
         } catch (error) {
-          console.log('No account selection needed, moving on...');
+          console.log('Account selector not found, continuing...');
         }
       } catch (error) {
-        console.log('Looks like we\'re already signed in, great!');
+        console.log('Already signed in, continuing...');
       }
   
-      // Wait for meeting interface to load with a more human-like approach
-      console.log('Waiting for the meeting controls to appear...');
+      // Wait for meeting interface to load
+      console.log('Waiting for meeting interface...');
       await this.driver.wait(
         until.elementLocated(By.css('div[role="button"][aria-label*="microphone"]')),
         15000
       );
-      console.log('Meeting interface loaded!');
-      
-      // Add a small pause like a human would do to assess the interface
-      await this._sleep(this.randomDelay() / 2);
   
-      // Turn off microphone if it's on - with more human-like checking
-      console.log('Checking microphone status...');
+      // Turn off microphone if it's on
       const micButton = await this.driver.findElement(By.css('div[role="button"][aria-label*="microphone"]'));
       const micStatus = await micButton.getAttribute('aria-label');
       if (!micStatus.toLowerCase().includes('turn on')) {
-        console.log('Turning off microphone...');
         await micButton.click();
-        await this._sleep(700 + Math.random() * 300); // Variable delay after clicking
-      } else {
-        console.log('Microphone is already off, perfect!');
+        await this._sleep(500);
       }
       
-      // Turn off camera if it's on - with more human-like checking
-      console.log('Checking camera status...');
+      // Turn off camera if it's on
       const camButton = await this.driver.findElement(By.css('div[role="button"][aria-label*="camera"]'));
       const camStatus = await camButton.getAttribute('aria-label');
       if (!camStatus.toLowerCase().includes('turn on')) {
-        console.log('Turning off camera...');
         await camButton.click();
-        await this._sleep(600 + Math.random() * 400); // Variable delay after clicking
-      } else {
-        console.log('Camera is already off, great!');
+        await this._sleep(500);
       }
   
-      // Take a moment before joining, like a human would
-      await this._sleep(this.randomDelay());
-      
       // Find and click join button - using the most reliable selector
-      console.log('Looking for the join button...');
+      console.log('Looking for join button...');
       const joinButton = await this.driver.wait(
         until.elementLocated(By.css('div[jsname="Qx7uuf"], div[jsname="K4r5Yd"], div[aria-label*="Join now"], div[aria-label*="Ask to join"]')),
         10000
       );
       await this.driver.wait(until.elementIsEnabled(joinButton), 5000);
-      console.log('Found join button, clicking it now...');
       await joinButton.click();
-      console.log('Join button clicked!');
+      console.log('Join button clicked');
   
-      // Handle confirmation dialog if it appears - with more human-like behavior
+      // Handle confirmation dialog if it appears
       try {
-        console.log('Checking for confirmation dialog...');
         const confirmButton = await this.driver.wait(
           until.elementLocated(By.css('button[jsname="j6LnYe"]')),
           2000
         );
-        console.log('Confirmation dialog appeared, confirming...');
-        await this._sleep(300 + Math.random() * 200); // Brief pause before confirming
         await confirmButton.click();
-        console.log('Confirmed!');
+        console.log('Confirmation dialog handled');
       } catch (error) {
-        console.log('No confirmation dialog appeared, continuing directly...');
+        console.log('No confirmation needed');
       }
   
-      console.log('Successfully joined the meeting! 🎉');
+      console.log('Successfully joined meeting');
       return true;
     } catch (err) {
-      console.error('Oops! Something went wrong while joining the meeting:', err.message);
+      console.error('Error during meeting join:', err.message);
       throw new Error('Meeting setup failed');
     }
   }
