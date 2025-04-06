@@ -1,5 +1,9 @@
 import { Builder, By, until } from 'selenium-webdriver';
 import chrome from 'selenium-webdriver/chrome.js';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+puppeteer.use(StealthPlugin());
 
 class JoinGoogleMeet {
   constructor(emailId, password) {
@@ -17,7 +21,7 @@ class JoinGoogleMeet {
       options.addArguments(
         '--disable-blink-features=AutomationControlled',
         '--start-maximized', 
-        '--headless=new',
+        '--headless=chrome',
         '--disable-notifications',
         '--use-fake-ui-for-media-stream',
         '--no-sandbox',

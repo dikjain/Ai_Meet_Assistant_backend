@@ -21,6 +21,8 @@
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.9",
     "openai": "^4.91.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "selenium-webdriver": "^4.31.0"
   }
 }
