@@ -6,9 +6,10 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 puppeteer.use(StealthPlugin());
 
 class JoinGoogleMeet {
-  constructor(emailId, password) {
+  constructor(emailId, password, proxy) {
     this.emailId = emailId;
     this.password = password;
+    this.proxy = proxy;
     this.driver = null;
     console.log('JoinGoogleMeet instance created');
   }
@@ -21,7 +22,7 @@ class JoinGoogleMeet {
       options.addArguments(
         '--disable-blink-features=AutomationControlled',
         '--start-maximized', 
-        // '--headless=chrome',
+        '--headless=chrome',
         '--disable-notifications',
         '--use-fake-ui-for-media-stream',
         '--no-sandbox',
@@ -39,6 +40,12 @@ class JoinGoogleMeet {
       );
 
       options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+
+      // Add proxy if provided
+      if (this.proxy) {
+        options.addArguments(`--proxy-server=${this.proxy}`);
+        console.log('Using proxy:', this.proxy);
+      }
 
       // Set binary path for Chrome in Docker
       if (process.platform === 'win32') {
