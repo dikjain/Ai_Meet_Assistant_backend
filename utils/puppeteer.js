@@ -77,18 +77,50 @@ class JoinGoogleMeet {
       await this._sleep(this.randomDelay());
 
       try {
-        // Handle email input page with potential CAPTCHA
-        await this._handleEmailInputWithCaptcha();
+        const emailField = await this.driver.wait(until.elementLocated(By.id('identifierId')), 10000);
+        await this._typeSlowly(emailField, this.emailId);
+      } catch (error) {
+        console.error('Email field error:', error.message);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
+        await this.cleanup();
+        throw error;
+      }
+
+      await this._sleep(this.randomDelay());
+      
+      try {
+        await this.driver.findElement(By.id('identifierNext')).click();
+      } catch (error) {
+        console.error('Next button error:', error.message);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
+        await this.cleanup();
+        throw error;
+      }
+
+      try {
+        await this.driver.wait(until.elementLocated(By.css('input[type="password"]')), 15000);
+        console.log('Password field located...');
+        
+        const passwordSelector = 'input[type="password"][name="Passwd"]';
+        await this.driver.wait(until.elementLocated(By.css(passwordSelector)), 15000);
+        const passwordField = await this.driver.wait(
+          until.elementIsVisible(await this.driver.findElement(By.css(passwordSelector))),
+          15000
+        );
+        await this._sleep(this.randomDelay());
+        
+        await this._typeSlowly(passwordField, this.password);
 
         await this._sleep(this.randomDelay());
-        await this.driver.findElement(By.id('identifierNext')).click();
-
-        // Handle password page
-        await this._handlePasswordInput();
-
+        await this.driver.findElement(By.id('passwordNext')).click();
+        await this.driver.wait(until.elementLocated(By.css('body')), 10000);
         console.log('Successfully logged into Google account');
       } catch (error) {
-        console.error('Login process error:', error.message);
+        console.error('Password field error:', error.message);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
         await this.cleanup();
         throw error;
       }
@@ -96,81 +128,6 @@ class JoinGoogleMeet {
       console.error('Login failed:', error.message);
       await this.cleanup();
       throw new Error('Login process failed');
-    }
-  }
-
-  async _handleEmailInputWithCaptcha() {
-    try {
-      // Wait for email field
-      const emailField = await this.driver.wait(until.elementLocated(By.id('identifierId')), 10000);
-      await this._typeSlowly(emailField, this.emailId);
-
-      // Check for CAPTCHA
-      try {
-        const captchaPresent = await this.driver.findElement(By.id('captchaimg')).isDisplayed();
-        if (captchaPresent) {
-          console.log('CAPTCHA detected, attempting to handle...');
-          
-          // Try audio CAPTCHA if available
-          try {
-            const audioButton = await this.driver.findElement(By.id('playCaptchaButton'));
-            await audioButton.click();
-            await this._sleep(2000);
-
-            // Get audio element and extract audio URL
-            const audioElement = await this.driver.findElement(By.id('captchaAudio'));
-            const audioSrc = await audioElement.getAttribute('src');
-
-            if (audioSrc) {
-              // Here you could implement audio processing to solve CAPTCHA
-              // For now, we'll log that manual intervention may be needed
-              console.log('Audio CAPTCHA URL found:', audioSrc);
-            }
-          } catch (audioError) {
-            console.log('Audio CAPTCHA not available:', audioError.message);
-          }
-
-          // Wait for manual intervention if needed
-          console.log('Waiting for CAPTCHA resolution...');
-          await this.driver.wait(async () => {
-            try {
-              await this.driver.findElement(By.id('identifierNext')).click();
-              return true;
-            } catch {
-              return false;
-            }
-          }, 30000);
-        }
-      } catch (captchaError) {
-        console.log('No CAPTCHA detected, continuing...');
-      }
-    } catch (error) {
-      console.error('Email input handling error:', error.message);
-      throw error;
-    }
-  }
-
-  async _handlePasswordInput() {
-    try {
-      await this.driver.wait(until.elementLocated(By.css('input[type="password"]')), 15000);
-      console.log('Password field located...');
-      
-      const passwordSelector = 'input[type="password"][name="Passwd"]';
-      await this.driver.wait(until.elementLocated(By.css(passwordSelector)), 15000);
-      const passwordField = await this.driver.wait(
-        until.elementIsVisible(await this.driver.findElement(By.css(passwordSelector))),
-        15000
-      );
-      
-      await this._sleep(this.randomDelay());
-      await this._typeSlowly(passwordField, this.password);
-
-      await this._sleep(this.randomDelay());
-      await this.driver.findElement(By.id('passwordNext')).click();
-      await this.driver.wait(until.elementLocated(By.css('body')), 10000);
-    } catch (error) {
-      console.error('Password input error:', error.message);
-      throw error;
     }
   }
 
@@ -198,7 +155,12 @@ class JoinGoogleMeet {
           await accountSelector.click();
           await this._sleep(this.randomDelay());
         } catch (error) {
-          console.log('Account selector not found, continuing...');
+          console.log('Account selector not found, going to meet URL directly...');
+          await this.driver.get(meetLink);
+          await this._sleep(this.randomDelay());
+          const elements = await this.driver.findElements(By.css('input, button, div'));
+          console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
+  
         }
       } catch (error) {
         console.log('Already signed in, continuing...');
@@ -213,6 +175,8 @@ class JoinGoogleMeet {
         );
       } catch (error) {
         console.error('Meeting interface load error:', error.message);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
         throw error;
       }
   
@@ -226,6 +190,8 @@ class JoinGoogleMeet {
         }
       } catch (error) {
         console.error('Microphone control error:', error.message);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
       }
       
       // Turn off camera if it's on
@@ -238,9 +204,11 @@ class JoinGoogleMeet {
         }
       } catch (error) {
         console.error('Camera control error:', error.message);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
       }
   
-      // Find and click join button
+      // Find and click join button - using the most reliable selector
       console.log('Looking for join button...');
       try {
         const joinButton = await this.driver.wait(
@@ -252,6 +220,8 @@ class JoinGoogleMeet {
         console.log('Join button clicked');
       } catch (error) {
         console.error('Join button error:', error.message);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
         throw error;
       }
   
@@ -303,6 +273,8 @@ class JoinGoogleMeet {
       
       return true;
     } catch (error) {
+      const elements = await this.driver.findElements(By.css('input, button, div'));
+      console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
       return false;
     }
   }
