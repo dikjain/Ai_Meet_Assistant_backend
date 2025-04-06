@@ -11,11 +11,7 @@ class JoinGoogleMeet {
   async init() {
     console.log('Initializing Chrome driver...');
     const options = new chrome.Options();
-    
-    // Add unique user data directory to prevent session conflicts
-    const userDataDir = `/tmp/chrome-data-${Date.now()}`;
-    options.addArguments(`--user-data-dir=${userDataDir}`);
-    
+
     options.addArguments(
       '--disable-blink-features=AutomationControlled',
       '--start-maximized', 
@@ -33,7 +29,7 @@ class JoinGoogleMeet {
       '--disable-cache',
       '--disable-application-cache',
       '--disable-offline-load-stale-cache',
-      '--disk-cache-size=0'
+      '--disk-cache-size=0',
     );
 
     options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
@@ -204,7 +200,7 @@ class JoinGoogleMeet {
   }
 }
 
-async function main(emailId, password, meetLink) {
+async function main() {
   const meet = new JoinGoogleMeet(emailId, password);
   
   try {
