@@ -3,11 +3,13 @@ import { JoinGoogleMeet } from './utils/puppeteer.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import fs from 'fs';
+import ProxyManager from './utils/proxies.js';
 
 dotenv.config();
 
 const app = express();
 const port = 3000;
+const proxyManager = new ProxyManager();
 
 // Create screenshots directory if it doesn't exist
 if (!fs.existsSync('screenshots')){
@@ -34,7 +36,15 @@ app.post('/join-meet', async (req, res) => {
       return res.status(400).json({ error: 'Meeting link, email and password are required' });
     }
 
-    const meet = new JoinGoogleMeet(emailId, password);
+    // Fetch and get random proxy
+    await proxyManager.fetchProxies();
+    const proxy = proxyManager.getRandomProxy();
+    if (!proxy) {
+      throw new Error('No proxy available');
+    }
+
+    const proxyString = `${proxy.protocol}://${proxy.ip}:${proxy.port}`;
+    const meet = new JoinGoogleMeet(emailId, password, proxyString);
     await meet.init();
     await meet.login();
     await meet.turnOffMicCam(meetLink);

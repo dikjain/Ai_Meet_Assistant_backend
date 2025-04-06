@@ -21,7 +21,7 @@ class JoinGoogleMeet {
       options.addArguments(
         '--disable-blink-features=AutomationControlled',
         '--start-maximized', 
-        '--headless=chrome',
+        // '--headless=chrome',
         '--disable-notifications',
         '--use-fake-ui-for-media-stream',
         '--no-sandbox',
@@ -41,7 +41,13 @@ class JoinGoogleMeet {
       options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
       // Set binary path for Chrome in Docker
-      options.setChromeBinaryPath(process.env.CHROME_BIN || '/usr/bin/google-chrome');
+      if (process.platform === 'win32') {
+        // For Windows, let Selenium Manager handle the binary path
+        console.log('Running on Windows - using default Chrome installation');
+      } else {
+        // For Docker/Linux environments
+        options.setChromeBinaryPath(process.env.CHROME_BIN || '/usr/bin/google-chrome');
+      }
 
       console.log('Building Chrome driver with options...');
       this.driver = await new Builder()
@@ -111,7 +117,7 @@ class JoinGoogleMeet {
       try {
         const signInButton = await this.driver.wait(
           until.elementLocated(By.css('div.rrdnCc div[role="button"]')),
-          5000
+          15000
         );
         await signInButton.click();
         await this._sleep(this.randomDelay());
@@ -120,7 +126,7 @@ class JoinGoogleMeet {
         try {
           const accountSelector = await this.driver.wait(
             until.elementLocated(By.css(`div[data-identifier="${this.emailId}"]`)),
-            5000
+            15000
           );
           await accountSelector.click();
           await this._sleep(this.randomDelay());
@@ -158,7 +164,7 @@ class JoinGoogleMeet {
       console.log('Looking for join button...');
       const joinButton = await this.driver.wait(
         until.elementLocated(By.css('div[jsname="Qx7uuf"], div[jsname="K4r5Yd"], div[aria-label*="Join now"], div[aria-label*="Ask to join"]')),
-        10000
+        15000
       );
       await this.driver.wait(until.elementIsEnabled(joinButton), 5000);
       await joinButton.click();
