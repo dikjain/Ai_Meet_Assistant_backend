@@ -6,10 +6,9 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 puppeteer.use(StealthPlugin());
 
 class JoinGoogleMeet {
-  constructor(emailId, password, proxy) {
+  constructor(emailId, password) {
     this.emailId = emailId;
     this.password = password;
-    this.proxy = proxy;
     this.driver = null;
     console.log('JoinGoogleMeet instance created');
   }
@@ -41,12 +40,6 @@ class JoinGoogleMeet {
 
       options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-      // Add proxy if provided
-      if (this.proxy) {
-        options.addArguments(`--proxy-server=${this.proxy}`);
-        console.log('Using proxy:', this.proxy);
-      }
-
       // Set binary path for Chrome in Docker
       if (process.platform === 'win32') {
         // For Windows, let Selenium Manager handle the binary path
@@ -61,6 +54,11 @@ class JoinGoogleMeet {
         .forBrowser('chrome')
         .setChromeOptions(options)
         .build();
+
+      // Add stealth scripts
+      await this.driver.executeScript("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})");
+      await this.driver.executeScript("navigator.plugins.length = 3");
+      await this.driver.executeScript("navigator.languages = ['en-US', 'en']");
 
       // Simplified random delay function
       this.randomDelay = () => Math.floor(Math.random() * 1500 + 500);

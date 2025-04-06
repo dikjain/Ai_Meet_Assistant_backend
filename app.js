@@ -3,13 +3,11 @@ import { JoinGoogleMeet } from './utils/puppeteer.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import fs from 'fs';
-import ProxyManager from './utils/proxies.js';
 
 dotenv.config();
 
 const app = express();
 const port = 3000;
-const proxyManager = new ProxyManager();
 
 // Create screenshots directory if it doesn't exist
 if (!fs.existsSync('screenshots')){
@@ -23,12 +21,14 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 // Define routes
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
 app.post('/join-meet', async (req, res) => {
+  let meet = null;
   try {
     const { meetLink, emailId, password } = req.body;
     
@@ -36,15 +36,7 @@ app.post('/join-meet', async (req, res) => {
       return res.status(400).json({ error: 'Meeting link, email and password are required' });
     }
 
-    // Fetch and get random proxy
-    await proxyManager.fetchProxies();
-    const proxy = proxyManager.getRandomProxy();
-    if (!proxy) {
-      throw new Error('No proxy available');
-    }
-
-    const proxyString = `${proxy.protocol}://${proxy.ip}:${proxy.port}`;
-    const meet = new JoinGoogleMeet(emailId, password, proxyString);
+    meet = new JoinGoogleMeet(emailId, password);
     await meet.init();
     await meet.login();
     await meet.turnOffMicCam(meetLink);
@@ -65,13 +57,8 @@ app.post('/join-meet', async (req, res) => {
     (async () => {
       while (true) {
         await new Promise(resolve => setTimeout(resolve, 30000)); // Check every 30 seconds
-        try {
-          if (!await meet.checkIfJoined()) {
-            console.log('Meeting appears to have ended');
-            break;
-          }
-        } catch (error) {
-          console.error('Lost connection to meeting:', error.message);
+        if (!await meet.checkIfJoined()) {
+          console.log('Meeting ended or connection lost');
           // Take screenshot on error
           try {
             const screenshot = await meet.driver.takeScreenshot();
@@ -83,22 +70,21 @@ app.post('/join-meet', async (req, res) => {
           break;
         }
       }
-      await meet.cleanup(); // Cleanup after meeting ends
+      if (meet) {
+        await meet.cleanup();
+      }
     })();
 
   } catch (error) {
     console.error('Meeting automation failed:', error.message);
     // Take screenshot on error
     try {
-      if (!req.body.emailId || !req.body.password) {
-        throw new Error('emailId and password are required');
+      if (meet && meet.driver) {
+        const screenshot = await meet.driver.takeScreenshot();
+        fs.writeFileSync('screenshots/error.png', screenshot, 'base64');
+        console.log('Error screenshot saved');
+        await meet.cleanup();
       }
-      const meet = new JoinGoogleMeet(req.body.emailId, req.body.password);
-      await meet.init();
-      const screenshot = await meet.driver.takeScreenshot();
-      fs.writeFileSync('screenshots/error.png', screenshot, 'base64');
-      console.log('Error screenshot saved');
-      await meet.cleanup();
     } catch (screenshotError) {
       console.error('Failed to capture screenshot:', screenshotError.message);
     }
