@@ -17,7 +17,7 @@ class JoinGoogleMeet {
       options.addArguments(
         '--disable-blink-features=AutomationControlled',
         '--start-maximized', 
-        // '--headless=new',
+        '--headless=new',
         '--disable-notifications',
         '--use-fake-ui-for-media-stream',
         '--no-sandbox',
