@@ -5,44 +5,51 @@ class JoinGoogleMeet {
   constructor(emailId, password) {
     this.emailId = emailId;
     this.password = password;
+    this.driver = null;
     console.log('JoinGoogleMeet instance created');
   }
 
   async init() {
-    console.log('Initializing Chrome driver...');
-    const options = new chrome.Options();
+    try {
+      console.log('Initializing Chrome driver...');
+      const options = new chrome.Options();
 
-    options.addArguments(
-      '--disable-blink-features=AutomationControlled',
-      '--start-maximized', 
-      '--headless=new',
-      '--disable-notifications',
-      '--use-fake-ui-for-media-stream',
-      '--no-sandbox',
-      '--disable-dev-shm-usage',
-      '--use-fake-device-for-media-stream',
-      '--disable-extensions',
-      '--disable-gpu',
-      '--disable-infobars',
-      '--js-flags=--expose-gc',
-      '--aggressive-cache-discard',
-      '--disable-cache',
-      '--disable-application-cache',
-      '--disable-offline-load-stale-cache',
-      '--disk-cache-size=0',
-    );
+      options.addArguments(
+        '--disable-blink-features=AutomationControlled',
+        '--start-maximized', 
+        '--headless=new',
+        '--disable-notifications',
+        '--use-fake-ui-for-media-stream',
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+        '--use-fake-device-for-media-stream',
+        '--disable-extensions',
+        '--disable-gpu',
+        '--disable-infobars',
+        '--js-flags=--expose-gc',
+        '--aggressive-cache-discard',
+        '--disable-cache',
+        '--disable-application-cache',
+        '--disable-offline-load-stale-cache',
+        '--disk-cache-size=0',
+      );
 
-    options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+      options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
-    console.log('Building Chrome driver with options...');
-    this.driver = await new Builder()
-      .forBrowser('chrome')
-      .setChromeOptions(options)
-      .build();
+      console.log('Building Chrome driver with options...');
+      this.driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(options)
+        .build();
 
-    // Simplified random delay function
-    this.randomDelay = () => Math.floor(Math.random() * 1500 + 500);
-    console.log('Chrome driver initialized successfully');
+      // Simplified random delay function
+      this.randomDelay = () => Math.floor(Math.random() * 1500 + 500);
+      console.log('Chrome driver initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize driver:', error.message);
+      await this.cleanup();
+      throw error;
+    }
   }
 
   async login() {
@@ -77,10 +84,12 @@ class JoinGoogleMeet {
         console.log('Successfully logged into Google account');
       } catch (error) {
         console.error('Password field error:', error.message);
+        await this.cleanup();
         throw error;
       }
     } catch (error) {
       console.error('Login failed:', error.message);
+      await this.cleanup();
       throw new Error('Login process failed');
     }
   }
@@ -164,6 +173,7 @@ class JoinGoogleMeet {
       return true;
     } catch (err) {
       console.error('Error during meeting join:', err.message);
+      await this.cleanup();
       throw new Error('Meeting setup failed');
     }
   }
@@ -198,6 +208,18 @@ class JoinGoogleMeet {
       return false;
     }
   }
+
+  async cleanup() {
+    if (this.driver) {
+      try {
+        await this.driver.quit();
+      } catch (error) {
+        console.error('Error while closing driver:', error.message);
+      } finally {
+        this.driver = null;
+      }
+    }
+  }
 }
 
 async function main() {
@@ -219,10 +241,7 @@ async function main() {
   } catch (error) {
     console.error('Automation failed:', error.message);
   } finally {
-    // Ensure driver is closed to free resources
-    if (meet.driver) {
-      await meet.driver.quit();
-    }
+    await meet.cleanup();
   }
 }
 
