@@ -35,7 +35,7 @@ class JoinGoogleMeet {
         `--user-data-dir=${this.userDataDir}`,
         '--disable-blink-features=AutomationControlled',
         '--start-maximized', 
-        // '--headless=chrome',
+        '--headless=chrome',
         '--disable-notifications',
         '--use-fake-ui-for-media-stream',
         '--no-sandbox',
