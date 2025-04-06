@@ -10,6 +10,7 @@ class ProxyManager {
     try {
       const response = await axios.get('https://proxylist.geonode.com/api/proxy-list', {
         params: {
+          protocols: 'https',
           limit: 500,
           page: 1,
           sort_by: 'lastChecked',
