@@ -17,7 +17,7 @@ class JoinGoogleMeet {
       '--start-maximized', 
       '--disable-notifications',
       '--use-fake-ui-for-media-stream',
-      // '--headless=new',  // new headless mode
+      '--headless=new',  // new headless mode
       '--no-sandbox',
       '--disable-dev-shm-usage',
       '--use-fake-device-for-media-stream'
