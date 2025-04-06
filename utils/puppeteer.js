@@ -81,8 +81,8 @@ class JoinGoogleMeet {
         await this._typeSlowly(emailField, this.emailId);
       } catch (error) {
         console.error('Email field error:', error.message);
-        const pageSource = await this.driver.getPageSource();
-        console.log('Page HTML:', pageSource);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
         await this.cleanup();
         throw error;
       }
@@ -93,8 +93,8 @@ class JoinGoogleMeet {
         await this.driver.findElement(By.id('identifierNext')).click();
       } catch (error) {
         console.error('Next button error:', error.message);
-        const pageSource = await this.driver.getPageSource();
-        console.log('Page HTML:', pageSource);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
         await this.cleanup();
         throw error;
       }
@@ -119,8 +119,8 @@ class JoinGoogleMeet {
         console.log('Successfully logged into Google account');
       } catch (error) {
         console.error('Password field error:', error.message);
-        const pageSource = await this.driver.getPageSource();
-        console.log('Page HTML:', pageSource);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
         await this.cleanup();
         throw error;
       }
@@ -156,8 +156,8 @@ class JoinGoogleMeet {
           await this._sleep(this.randomDelay());
         } catch (error) {
           console.log('Account selector not found, continuing...');
-          const pageSource = await this.driver.getPageSource();
-          console.log('Page HTML:', pageSource);
+          const elements = await this.driver.findElements(By.css('input, button, div'));
+          console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
         }
       } catch (error) {
         console.log('Already signed in, continuing...');
@@ -172,8 +172,8 @@ class JoinGoogleMeet {
         );
       } catch (error) {
         console.error('Meeting interface load error:', error.message);
-        const pageSource = await this.driver.getPageSource();
-        console.log('Page HTML:', pageSource);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
         throw error;
       }
   
@@ -187,8 +187,8 @@ class JoinGoogleMeet {
         }
       } catch (error) {
         console.error('Microphone control error:', error.message);
-        const pageSource = await this.driver.getPageSource();
-        console.log('Page HTML:', pageSource);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
       }
       
       // Turn off camera if it's on
@@ -201,8 +201,8 @@ class JoinGoogleMeet {
         }
       } catch (error) {
         console.error('Camera control error:', error.message);
-        const pageSource = await this.driver.getPageSource();
-        console.log('Page HTML:', pageSource);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
       }
   
       // Find and click join button - using the most reliable selector
@@ -217,8 +217,8 @@ class JoinGoogleMeet {
         console.log('Join button clicked');
       } catch (error) {
         console.error('Join button error:', error.message);
-        const pageSource = await this.driver.getPageSource();
-        console.log('Page HTML:', pageSource);
+        const elements = await this.driver.findElements(By.css('input, button, div'));
+        console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
         throw error;
       }
   
@@ -270,8 +270,8 @@ class JoinGoogleMeet {
       
       return true;
     } catch (error) {
-      const pageSource = await this.driver.getPageSource();
-      console.log('Meeting status check failed. Page HTML:', pageSource);
+      const elements = await this.driver.findElements(By.css('input, button, div'));
+      console.log('Page elements:', await Promise.all(elements.map(e => e.getAttribute('outerHTML'))));
       return false;
     }
   }

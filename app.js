@@ -46,17 +46,6 @@ app.post('/join-meet', async (req, res) => {
       const screenshot = await meet.driver.takeScreenshot();
       fs.writeFileSync('screenshots/screenshot.png', screenshot, 'base64');
       console.log('Screenshot saved successfully');
-
-      // Log page elements
-      const inputs = await meet.driver.findElements(By.css('input'));
-      const buttons = await meet.driver.findElements(By.css('button'));
-      const divs = await meet.driver.findElements(By.css('div'));
-
-      console.log('Page Elements:');
-      console.log('Inputs:', await Promise.all(inputs.map(el => el.getAttribute('outerHTML'))));
-      console.log('Buttons:', await Promise.all(buttons.map(el => el.getAttribute('outerHTML'))));
-      console.log('Divs:', await Promise.all(divs.map(el => el.getAttribute('outerHTML'))));
-
     } catch (screenshotError) {
       console.error('Failed to capture screenshot:', screenshotError.message);
     }
@@ -70,22 +59,11 @@ app.post('/join-meet', async (req, res) => {
         await new Promise(resolve => setTimeout(resolve, 30000)); // Check every 30 seconds
         if (!await meet.checkIfJoined()) {
           console.log('Meeting ended or connection lost');
-          // Take screenshot and log elements on error
+          // Take screenshot on error
           try {
             const screenshot = await meet.driver.takeScreenshot();
             fs.writeFileSync('screenshots/error.png', screenshot, 'base64');
             console.log('Error screenshot saved');
-
-            // Log page elements
-            const inputs = await meet.driver.findElements(By.css('input'));
-            const buttons = await meet.driver.findElements(By.css('button')); 
-            const divs = await meet.driver.findElements(By.css('div'));
-
-            console.log('Page Elements at Error:');
-            console.log('Inputs:', await Promise.all(inputs.map(el => el.getAttribute('outerHTML'))));
-            console.log('Buttons:', await Promise.all(buttons.map(el => el.getAttribute('outerHTML'))));
-            console.log('Divs:', await Promise.all(divs.map(el => el.getAttribute('outerHTML'))));
-
           } catch (screenshotError) {
             console.error('Failed to capture screenshot:', screenshotError.message);
           }
@@ -99,23 +77,12 @@ app.post('/join-meet', async (req, res) => {
 
   } catch (error) {
     console.error('Meeting automation failed:', error.message);
-    // Take screenshot and log elements on error
+    // Take screenshot on error
     try {
       if (meet && meet.driver) {
         const screenshot = await meet.driver.takeScreenshot();
         fs.writeFileSync('screenshots/error.png', screenshot, 'base64');
         console.log('Error screenshot saved');
-
-        // Log page elements
-        const inputs = await meet.driver.findElements(By.css('input'));
-        const buttons = await meet.driver.findElements(By.css('button'));
-        const divs = await meet.driver.findElements(By.css('div'));
-
-        console.log('Page Elements at Error:');
-        console.log('Inputs:', await Promise.all(inputs.map(el => el.getAttribute('outerHTML'))));
-        console.log('Buttons:', await Promise.all(buttons.map(el => el.getAttribute('outerHTML'))));
-        console.log('Divs:', await Promise.all(divs.map(el => el.getAttribute('outerHTML'))));
-
         await meet.cleanup();
       }
     } catch (screenshotError) {
