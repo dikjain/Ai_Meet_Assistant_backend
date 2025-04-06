@@ -9,7 +9,13 @@ dotenv.config();
 const app = express();
 const port = 3000;
 
+// Create screenshots directory if it doesn't exist
+if (!fs.existsSync('screenshots')){
+  fs.mkdirSync('screenshots');
+}
+
 app.use(express.json());
+app.use('/screenshots', express.static('screenshots'));
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -36,7 +42,7 @@ app.post('/join-meet', async (req, res) => {
     // Take screenshot on success
     try {
       const screenshot = await meet.driver.takeScreenshot();
-      fs.writeFileSync('screenshot.png', screenshot, 'base64');
+      fs.writeFileSync('screenshots/screenshot.png', screenshot, 'base64');
       console.log('Screenshot saved successfully');
     } catch (screenshotError) {
       console.error('Failed to capture screenshot:', screenshotError.message);
@@ -59,7 +65,7 @@ app.post('/join-meet', async (req, res) => {
           // Take screenshot on error
           try {
             const screenshot = await meet.driver.takeScreenshot();
-            fs.writeFileSync('error.png', screenshot, 'base64');
+            fs.writeFileSync('screenshots/error.png', screenshot, 'base64');
             console.log('Error screenshot saved');
           } catch (screenshotError) {
             console.error('Failed to capture screenshot:', screenshotError.message);
@@ -80,7 +86,7 @@ app.post('/join-meet', async (req, res) => {
       const meet = new JoinGoogleMeet(req.body.emailId, req.body.password);
       await meet.init();
       const screenshot = await meet.driver.takeScreenshot();
-      fs.writeFileSync('error.png', screenshot, 'base64');
+      fs.writeFileSync('screenshots/error.png', screenshot, 'base64');
       console.log('Error screenshot saved');
       await meet.cleanup();
     } catch (screenshotError) {
