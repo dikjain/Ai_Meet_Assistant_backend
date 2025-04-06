@@ -38,7 +38,13 @@ app.post('/join-meet', async (req, res) => {
 
     meet = new JoinGoogleMeet(emailId, password);
     await meet.init();
-    await meet.login();
+    
+    if (!(await meet.isLoggedIn())) {
+      await meet.login();
+    } else {
+      console.log('Already logged in using stored session');
+    }
+
     await meet.turnOffMicCam(meetLink);
 
     // Take screenshot on success

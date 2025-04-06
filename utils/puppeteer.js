@@ -2,6 +2,8 @@ import { Builder, By, until } from 'selenium-webdriver';
 import chrome from 'selenium-webdriver/chrome.js';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import fs from 'fs';
+import path from 'path';
 
 puppeteer.use(StealthPlugin());
 
@@ -10,6 +12,7 @@ class JoinGoogleMeet {
     this.emailId = emailId;
     this.password = password;
     this.driver = null;
+    this.userDataDir = path.join(process.cwd(), 'chrome-user-data', emailId);
     console.log('JoinGoogleMeet instance created');
   }
 
@@ -18,10 +21,17 @@ class JoinGoogleMeet {
       console.log('Initializing Chrome driver...');
       const options = new chrome.Options();
 
+      // Create user data directory if it doesn't exist
+      if (!fs.existsSync(this.userDataDir)) {
+        fs.mkdirSync(this.userDataDir, { recursive: true });
+        console.log(`Created user data directory: ${this.userDataDir}`);
+      }
+
       options.addArguments(
+        `--user-data-dir=${this.userDataDir}`,
         '--disable-blink-features=AutomationControlled',
         '--start-maximized', 
-        '--headless=chrome',
+        // '--headless=chrome',
         '--disable-notifications',
         '--use-fake-ui-for-media-stream',
         '--no-sandbox',
@@ -37,6 +47,7 @@ class JoinGoogleMeet {
         '--disable-offline-load-stale-cache',
         '--disk-cache-size=0',
       );
+      options.addArguments(`--user-data-dir=${this.userDataDir}`);
 
       options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
@@ -67,6 +78,16 @@ class JoinGoogleMeet {
       console.error('Failed to initialize driver:', error.message);
       await this.cleanup();
       throw error;
+    }
+  }
+
+  async isLoggedIn() {
+    try {
+      await this.driver.get('https://myaccount.google.com/');
+      await this.driver.wait(until.elementLocated(By.css('a[href*="SignOutOptions"]')), 10000);
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -297,7 +318,13 @@ async function main() {
   
   try {
     await meet.init();
-    await meet.login();
+    
+    if (!(await meet.isLoggedIn())) {
+      await meet.login();
+    } else {
+      console.log('Already logged in using stored session');
+    }
+
     await meet.turnOffMicCam(meetLink);
 
     // Check meeting status periodically
