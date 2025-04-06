@@ -90,91 +90,76 @@ class JoinGoogleMeet {
       await this.driver.get(meetLink);
       await this._sleep(this.randomDelay());
   
+      // Try to sign in if needed
       try {
         const signInButton = await this.driver.wait(
           until.elementLocated(By.css('div.rrdnCc div[role="button"]')),
-          10000
+          5000
         );
         await signInButton.click();
         await this._sleep(this.randomDelay());
-      } catch (err) {
-        console.log('No sign-in button found');
-      }
-  
-      try {
-        const accountSelector = await this.driver.wait(
-          until.elementLocated(By.css(`div[jsname="MBVUVe"][data-identifier="${this.emailId}"]`)),
-          10000
-        );
-        await accountSelector.click();
-        await this._sleep(this.randomDelay());
-      } catch (err) {
-        console.log('Account selector not found');
-      }
-  
-      await this.driver.wait(
-        until.elementLocated(By.css('div[role="button"][aria-label*="microphone"], div[role="button"][aria-label*="camera"]')),
-        20000
-      );
-  
-      const controlButtons = await this.driver.findElements(
-        By.css('div[role="button"][aria-label*="microphone"], div[role="button"][aria-label*="camera"]')
-      );
-  
-      for (const button of controlButtons) {
-        const ariaLabel = await button.getAttribute('aria-label');
-        if (!ariaLabel.toLowerCase().includes('turn on')) {
-          await this._sleep(this.randomDelay());
-          await button.click();
-        }
-      }
-  
-      const joinSelectors = [
-        'div[jsname="Qx7uuf"]',
-        'div[jsname="K4r5Yd"]',
-        'div[data-mdc-dialog-action="join"]',
-        'div[aria-label*="Ask to join"]',
-        'div[aria-label*="Join now"]'
-      ];
-  
-      let joinButton = null;
-      for (const selector of joinSelectors) {
+        
+        // Select account if needed
         try {
-          await this.driver.wait(until.elementLocated(By.css(selector)), 3000);
-          joinButton = await this.driver.findElement(By.css(selector));
-          break;
-        } catch (err) {
-          continue;
-        }
-      }
-  
-      if (!joinButton) {
-        throw new Error('Could not locate join button');
-      }
-  
-      await this.driver.wait(until.elementIsEnabled(joinButton), 8000);
-      await this._sleep(this.randomDelay());
-      await joinButton.click();
-  
-      const confirmSelectors = [
-        'button[jsname="j6LnYe"]',
-        'button[data-id="confirm"]',
-        'button[aria-label*="confirm"]'
-      ];
-  
-      for (const selector of confirmSelectors) {
-        try {
-          const confirmButton = await this.driver.wait(
-            until.elementLocated(By.css(selector)),
-            2000
+          const accountSelector = await this.driver.wait(
+            until.elementLocated(By.css(`div[data-identifier="${this.emailId}"]`)),
+            5000
           );
-          await confirmButton.click();
-          break;
-        } catch {
-          // Continue if not found
+          await accountSelector.click();
+          await this._sleep(this.randomDelay());
+        } catch (error) {
+          console.log('Account selector not found, continuing...');
         }
+      } catch (error) {
+        console.log('Already signed in, continuing...');
       }
   
+      // Wait for meeting interface to load
+      console.log('Waiting for meeting interface...');
+      await this.driver.wait(
+        until.elementLocated(By.css('div[role="button"][aria-label*="microphone"]')),
+        15000
+      );
+  
+      // Turn off microphone if it's on
+      const micButton = await this.driver.findElement(By.css('div[role="button"][aria-label*="microphone"]'));
+      const micStatus = await micButton.getAttribute('aria-label');
+      if (!micStatus.toLowerCase().includes('turn on')) {
+        await micButton.click();
+        await this._sleep(500);
+      }
+      
+      // Turn off camera if it's on
+      const camButton = await this.driver.findElement(By.css('div[role="button"][aria-label*="camera"]'));
+      const camStatus = await camButton.getAttribute('aria-label');
+      if (!camStatus.toLowerCase().includes('turn on')) {
+        await camButton.click();
+        await this._sleep(500);
+      }
+  
+      // Find and click join button - using the most reliable selector
+      console.log('Looking for join button...');
+      const joinButton = await this.driver.wait(
+        until.elementLocated(By.css('div[jsname="Qx7uuf"], div[jsname="K4r5Yd"], div[aria-label*="Join now"], div[aria-label*="Ask to join"]')),
+        10000
+      );
+      await this.driver.wait(until.elementIsEnabled(joinButton), 5000);
+      await joinButton.click();
+      console.log('Join button clicked');
+  
+      // Handle confirmation dialog if it appears
+      try {
+        const confirmButton = await this.driver.wait(
+          until.elementLocated(By.css('button[jsname="j6LnYe"]')),
+          2000
+        );
+        await confirmButton.click();
+        console.log('Confirmation dialog handled');
+      } catch (error) {
+        console.log('No confirmation needed');
+      }
+  
+      console.log('Successfully joined meeting');
       return true;
     } catch (err) {
       console.error('Error during meeting join:', err.message);
