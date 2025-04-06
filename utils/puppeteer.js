@@ -148,7 +148,7 @@ class JoinGoogleMeet {
     } catch (error) {
       console.error('Login failed:', error.message);
       await this.cleanup();
-      throw new Error('Login process failed');
+      throw error;
     }
   }
 
@@ -263,7 +263,7 @@ class JoinGoogleMeet {
     } catch (err) {
       console.error('Error during meeting join:', err.message);
       await this.cleanup();
-      throw new Error('Meeting setup failed');
+      throw err;
     }
   }
   
