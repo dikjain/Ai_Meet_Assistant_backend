@@ -12,6 +12,10 @@ class JoinGoogleMeet {
     console.log('Initializing Chrome driver...');
     const options = new chrome.Options();
     
+    // Add unique user data directory to prevent session conflicts
+    const userDataDir = `/tmp/chrome-data-${Date.now()}`;
+    options.addArguments(`--user-data-dir=${userDataDir}`);
+    
     options.addArguments(
       '--disable-blink-features=AutomationControlled',
       '--start-maximized', 
@@ -200,11 +204,7 @@ class JoinGoogleMeet {
   }
 }
 
-async function main() {
-  const emailId = process.env.EMAIL_ID;
-  const password = process.env.PASSWORD;
-  const meetLink = process.env.MEET_LINK;
-
+async function main(emailId, password, meetLink) {
   const meet = new JoinGoogleMeet(emailId, password);
   
   try {
