@@ -4,6 +4,7 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 puppeteer.use(StealthPlugin());
 
@@ -12,7 +13,10 @@ class JoinGoogleMeet {
     this.emailId = emailId;
     this.password = password;
     this.driver = null;
-    this.userDataDir = path.join(process.cwd(), 'chrome-user-data', emailId);
+    // Generate unique directory name using timestamp and random string
+    const uniqueId = crypto.randomBytes(4).toString('hex');
+    const timestamp = Date.now();
+    this.userDataDir = path.join(process.cwd(), 'chrome-user-data', `${emailId}-${timestamp}-${uniqueId}`);
     console.log('JoinGoogleMeet instance created');
   }
 
@@ -47,7 +51,6 @@ class JoinGoogleMeet {
         '--disable-offline-load-stale-cache',
         '--disk-cache-size=0',
       );
-      options.addArguments(`--user-data-dir=${this.userDataDir}`);
 
       options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
 
@@ -304,6 +307,11 @@ class JoinGoogleMeet {
     if (this.driver) {
       try {
         await this.driver.quit();
+        // Clean up user data directory after session ends
+        if (fs.existsSync(this.userDataDir)) {
+          fs.rmSync(this.userDataDir, { recursive: true, force: true });
+          console.log(`Cleaned up user data directory: ${this.userDataDir}`);
+        }
       } catch (error) {
         console.error('Error while closing driver:', error.message);
       } finally {
