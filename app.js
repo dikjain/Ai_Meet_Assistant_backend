@@ -2,6 +2,7 @@ import express from 'express';
 import { JoinGoogleMeet } from './utils/puppeteer.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -32,6 +33,15 @@ app.post('/join-meet', async (req, res) => {
     await meet.login();
     await meet.turnOffMicCam(meetLink);
 
+    // Take screenshot on success
+    try {
+      const screenshot = await meet.driver.takeScreenshot();
+      fs.writeFileSync('screenshot.png', screenshot, 'base64');
+      console.log('Screenshot saved successfully');
+    } catch (screenshotError) {
+      console.error('Failed to capture screenshot:', screenshotError.message);
+    }
+
     // Send initial success response
     res.json({ message: 'Successfully joined meeting' });
 
@@ -46,13 +56,36 @@ app.post('/join-meet', async (req, res) => {
           }
         } catch (error) {
           console.error('Lost connection to meeting:', error.message);
+          // Take screenshot on error
+          try {
+            const screenshot = await meet.driver.takeScreenshot();
+            fs.writeFileSync('error.png', screenshot, 'base64');
+            console.log('Error screenshot saved');
+          } catch (screenshotError) {
+            console.error('Failed to capture screenshot:', screenshotError.message);
+          }
           break;
         }
       }
+      await meet.cleanup(); // Cleanup after meeting ends
     })();
 
   } catch (error) {
     console.error('Meeting automation failed:', error.message);
+    // Take screenshot on error
+    try {
+      if (!req.body.emailId || !req.body.password) {
+        throw new Error('emailId and password are required');
+      }
+      const meet = new JoinGoogleMeet(req.body.emailId, req.body.password);
+      await meet.init();
+      const screenshot = await meet.driver.takeScreenshot();
+      fs.writeFileSync('error.png', screenshot, 'base64');
+      console.log('Error screenshot saved');
+      await meet.cleanup();
+    } catch (screenshotError) {
+      console.error('Failed to capture screenshot:', screenshotError.message);
+    }
     res.status(500).json({ error: 'Failed to join meeting' });
   }
 });
