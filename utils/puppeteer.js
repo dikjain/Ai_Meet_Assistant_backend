@@ -76,11 +76,28 @@ class JoinGoogleMeet {
       await this.driver.get('https://accounts.google.com/ServiceLogin');
       await this._sleep(this.randomDelay());
 
-      const emailField = await this.driver.wait(until.elementLocated(By.id('identifierId')), 10000);
-      await this._typeSlowly(emailField, this.emailId);
+      try {
+        const emailField = await this.driver.wait(until.elementLocated(By.id('identifierId')), 10000);
+        await this._typeSlowly(emailField, this.emailId);
+      } catch (error) {
+        console.error('Email field error:', error.message);
+        const pageSource = await this.driver.getPageSource();
+        console.log('Page HTML:', pageSource);
+        await this.cleanup();
+        throw error;
+      }
 
       await this._sleep(this.randomDelay());
-      await this.driver.findElement(By.id('identifierNext')).click();
+      
+      try {
+        await this.driver.findElement(By.id('identifierNext')).click();
+      } catch (error) {
+        console.error('Next button error:', error.message);
+        const pageSource = await this.driver.getPageSource();
+        console.log('Page HTML:', pageSource);
+        await this.cleanup();
+        throw error;
+      }
 
       try {
         await this.driver.wait(until.elementLocated(By.css('input[type="password"]')), 15000);
@@ -102,6 +119,8 @@ class JoinGoogleMeet {
         console.log('Successfully logged into Google account');
       } catch (error) {
         console.error('Password field error:', error.message);
+        const pageSource = await this.driver.getPageSource();
+        console.log('Page HTML:', pageSource);
         await this.cleanup();
         throw error;
       }
@@ -137,6 +156,8 @@ class JoinGoogleMeet {
           await this._sleep(this.randomDelay());
         } catch (error) {
           console.log('Account selector not found, continuing...');
+          const pageSource = await this.driver.getPageSource();
+          console.log('Page HTML:', pageSource);
         }
       } catch (error) {
         console.log('Already signed in, continuing...');
@@ -144,36 +165,62 @@ class JoinGoogleMeet {
   
       // Wait for meeting interface to load
       console.log('Waiting for meeting interface...');
-      await this.driver.wait(
-        until.elementLocated(By.css('div[role="button"][aria-label*="microphone"]')),
-        15000
-      );
+      try {
+        await this.driver.wait(
+          until.elementLocated(By.css('div[role="button"][aria-label*="microphone"]')),
+          15000
+        );
+      } catch (error) {
+        console.error('Meeting interface load error:', error.message);
+        const pageSource = await this.driver.getPageSource();
+        console.log('Page HTML:', pageSource);
+        throw error;
+      }
   
       // Turn off microphone if it's on
-      const micButton = await this.driver.findElement(By.css('div[role="button"][aria-label*="microphone"]'));
-      const micStatus = await micButton.getAttribute('aria-label');
-      if (!micStatus.toLowerCase().includes('turn on')) {
-        await micButton.click();
-        await this._sleep(500);
+      try {
+        const micButton = await this.driver.findElement(By.css('div[role="button"][aria-label*="microphone"]'));
+        const micStatus = await micButton.getAttribute('aria-label');
+        if (!micStatus.toLowerCase().includes('turn on')) {
+          await micButton.click();
+          await this._sleep(500);
+        }
+      } catch (error) {
+        console.error('Microphone control error:', error.message);
+        const pageSource = await this.driver.getPageSource();
+        console.log('Page HTML:', pageSource);
       }
       
       // Turn off camera if it's on
-      const camButton = await this.driver.findElement(By.css('div[role="button"][aria-label*="camera"]'));
-      const camStatus = await camButton.getAttribute('aria-label');
-      if (!camStatus.toLowerCase().includes('turn on')) {
-        await camButton.click();
-        await this._sleep(500);
+      try {
+        const camButton = await this.driver.findElement(By.css('div[role="button"][aria-label*="camera"]'));
+        const camStatus = await camButton.getAttribute('aria-label');
+        if (!camStatus.toLowerCase().includes('turn on')) {
+          await camButton.click();
+          await this._sleep(500);
+        }
+      } catch (error) {
+        console.error('Camera control error:', error.message);
+        const pageSource = await this.driver.getPageSource();
+        console.log('Page HTML:', pageSource);
       }
   
       // Find and click join button - using the most reliable selector
       console.log('Looking for join button...');
-      const joinButton = await this.driver.wait(
-        until.elementLocated(By.css('div[jsname="Qx7uuf"], div[jsname="K4r5Yd"], div[aria-label*="Join now"], div[aria-label*="Ask to join"]')),
-        15000
-      );
-      await this.driver.wait(until.elementIsEnabled(joinButton), 5000);
-      await joinButton.click();
-      console.log('Join button clicked');
+      try {
+        const joinButton = await this.driver.wait(
+          until.elementLocated(By.css('div[jsname="Qx7uuf"], div[jsname="K4r5Yd"], div[aria-label*="Join now"], div[aria-label*="Ask to join"]')),
+          15000
+        );
+        await this.driver.wait(until.elementIsEnabled(joinButton), 5000);
+        await joinButton.click();
+        console.log('Join button clicked');
+      } catch (error) {
+        console.error('Join button error:', error.message);
+        const pageSource = await this.driver.getPageSource();
+        console.log('Page HTML:', pageSource);
+        throw error;
+      }
   
       // Handle confirmation dialog if it appears
       try {
@@ -223,6 +270,8 @@ class JoinGoogleMeet {
       
       return true;
     } catch (error) {
+      const pageSource = await this.driver.getPageSource();
+      console.log('Meeting status check failed. Page HTML:', pageSource);
       return false;
     }
   }
