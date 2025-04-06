@@ -1,6 +1,7 @@
 import express from 'express';
 import { JoinGoogleMeet } from './utils/puppeteer.js';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -8,7 +9,11 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
-
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 // Define routes
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -16,12 +21,13 @@ app.get('/', (req, res) => {
 
 app.post('/join-meet', async (req, res) => {
   try {
-    const meetLink = process.env.MEET_LINK;
-    if (!meetLink) {
-      return res.status(400).json({ error: 'MEET_LINK environment variable is required' });
+    const { meetLink, emailId, password } = req.body;
+    
+    if (!meetLink || !emailId || !password) {
+      return res.status(400).json({ error: 'Meeting link, email and password are required' });
     }
 
-    const meet = new JoinGoogleMeet(process.env.EMAIL_ID, process.env.PASSWORD);
+    const meet = new JoinGoogleMeet(emailId, password);
     await meet.init();
     await meet.login();
     await meet.turnOffMicCam(meetLink);
