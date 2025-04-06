@@ -11,6 +11,11 @@ class JoinGoogleMeet {
   async init() {
     console.log('Initializing Chrome driver...');
     const options = new chrome.Options();
+    
+    // Create unique user data directory
+    const userDataDir = `/tmp/chrome-data-${Date.now()}`;
+    options.addArguments(`--user-data-dir=${userDataDir}`);
+    
     options.addArguments(
       '--disable-blink-features=AutomationControlled',
       '--start-maximized', 
