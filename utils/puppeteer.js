@@ -1,8 +1,8 @@
 import { Builder, By, until } from 'selenium-webdriver';
 import chrome from 'selenium-webdriver/chrome.js';
-
 import fs from 'fs';
 import path from 'path';
+
 
 
 class JoinGoogleMeet {
@@ -16,6 +16,7 @@ class JoinGoogleMeet {
 
   async init() {
     try {
+
       console.log('Initializing Chrome driver...');
       const options = new chrome.Options();
 
@@ -64,10 +65,17 @@ class JoinGoogleMeet {
         .setChromeOptions(options)
         .build();
 
-      // Add stealth scripts
-      await this.driver.executeScript("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})");
-      await this.driver.executeScript("navigator.plugins.length = 3");
-      await this.driver.executeScript("navigator.languages = ['en-US', 'en']");
+      // Enhanced stealth scripts
+      await this.driver.executeScript(`
+        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+        Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+        Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+        Object.defineProperty(navigator, 'chrome', { get: () => ({ runtime: {} }) });
+      `);
+
+      // Add human-like mouse movements
+      await this.driver.actions().move({ origin: this.driver.findElement(By.css('body')) }).perform();
+      await this._sleep(Math.random() * 1000 + 500);
 
       // Simplified random delay function
       this.randomDelay = () => Math.floor(Math.random() * 1500 + 500);

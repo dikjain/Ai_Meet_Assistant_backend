@@ -26,6 +26,8 @@
     "puppeteer-core": "^24.6.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "selenium-webdriver": "^4.31.0"
+    "selenium-stealth": "^1.0.1",
+    "selenium-webdriver": "^4.31.0",
+    "xvfb": "^0.4.0"
   }
 }
