@@ -1,5 +1,6 @@
 import { Builder, By, until } from 'selenium-webdriver';
 import chrome from 'selenium-webdriver/chrome.js';
+// import Xvfb from 'xvfb';
 import fs from 'fs';
 import path from 'path';
 
@@ -11,11 +12,20 @@ class JoinGoogleMeet {
     this.password = password;
     this.driver = null;
     this.userDataDir = path.join(process.cwd(), 'chrome-user-data', emailId);
+    // this.xvfb = new Xvfb();
     console.log('JoinGoogleMeet instance created');
   }
 
   async init() {
     try {
+      // console.log('Starting Xvfb...');
+      // try {
+      //   this.xvfb.startSync();
+      // } catch (error) {
+      //   console.error('Failed to initialize driver: Could not start Xvfb.');
+      //   await this.cleanup();
+      //   throw new Error('Could not start Xvfb.');
+      // }
 
       console.log('Initializing Chrome driver...');
       const options = new chrome.Options();
@@ -316,6 +326,13 @@ class JoinGoogleMeet {
         this.driver = null;
       }
     }
+    // if (this.xvfb) {
+    //   try {
+    //     this.xvfb.stopSync();
+    //   } catch (error) {
+    //     console.error('Error while stopping Xvfb:', error.message);
+    //   }
+    // }
   }
 }
 
